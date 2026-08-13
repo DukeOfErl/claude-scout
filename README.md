@@ -1,6 +1,30 @@
-# Scout
+# Scout — turn GenAI overwhelm into just-in-time project-targeted suggestions
 
-A [Claude Code](https://claude.com/claude-code) skill that tracks curated GenAI sources, filters new tools and concepts through a **traction gate** (only things proven beyond their own developers), runs a **promotion review** on survivors (critical reviews, comparable tools, four-dimension scoring), and occasionally suggests **exactly one** item — matched to your projects and learning goals, capped (default: one per week) so it informs instead of overwhelming.
+A [Claude Code](https://claude.com/claude-code) skill that watches the GenAI firehose for you and occasionally surfaces **exactly one** vetted, scored, project-matched suggestion.
+
+## The problems
+
+Keeping up with GenAI feels like this:
+
+- **Too much, too fast.** Fifty launches a week, five newsletters a day. Reading it all is a part-time job; skipping it all feels like falling behind.
+- **Hype is indistinguishable from traction.** Everything trends on launch day. By the time you try the viral thing, it's abandoned — or nobody beyond its own developers ever actually used it.
+- **You only hear the pitch.** Announcements don't mention the 51% hallucination rate, the pricing cliff, or the better-established alternative.
+- **None of it knows what you're building.** Generic roundups can't say whether a tool fits your stack, your project stage, or your learning goals.
+- **It arrives at the wrong moment.** The interesting link lands while you're heads-down, and dies in a tab.
+
+## The solution
+
+Five mechanisms, each aimed at a pain point:
+
+| Mechanism | Addresses |
+|---|---|
+| **Traction gate** — emerging items need sightings in ≥2 independent sources ≥14 days apart, plus third-party usage evidence | Launch hype, single-dev demos |
+| **Promotion review** — critical-reviews search + comparables check before anything becomes suggestible; a clearly better alternative *replaces* the item | One-sided pitches, missed alternatives |
+| **Scored cards** — standard / emerging / friction / value, 1–5 | Judgment at a glance instead of vibes |
+| **Living project profile** — auto-built from your repos, refreshed as they change, dormant when you stop touching them | Generic, stack-blind recommendations |
+| **Cap + timing** — default one suggestion per week, offered only at a stage match or a lull | Overwhelm, badly timed interruptions |
+
+A suggestion looks like this:
 
 ```
 ╭──────────────────────────────────────────────────╮
@@ -20,11 +44,7 @@ A [Claude Code](https://claude.com/claude-code) skill that tracks curated GenAI 
 
 ## How it works
 
-- **Discovery**: fetches curated channels (defaults: [GenAI PM wiki](https://genaipm.com/wiki/tools?sort=recent), [AI News](https://news.smol.ai/rss.xml), [TLDR AI](https://tldr.tech/api/rss/ai)) and records dated sightings per item.
-- **Traction gate**: emerging tools need sightings in ≥2 independent channels ≥14 days apart **plus** third-party usage evidence before they can be suggested. No launch hype.
-- **Promotion review**: on shortlist entry, every item gets a negative-signals search (trusted critics), a comparables check (a clearly better alternative *replaces* the item), and 1–5 scores: how standard, how emerging, friction (for *you*), value (to *your* projects).
-- **Living profile**: scout asks once per project whether to track it ("track / don't / ask me later"), self-fills descriptions from your CLAUDE.md/README, refreshes them when those files change, and stops targeting projects you haven't touched in weeks.
-- **Suggestions**: at most one per week (configurable), only at opportune moments (stage match or lull), always with the score card, caveats, alternatives, and dual citation (aggregator + original source).
+A daily background run (via an optional hook) fetches curated channels — defaults: [GenAI PM wiki](https://genaipm.com/wiki/tools?sort=recent), [AI News](https://news.smol.ai/rss.xml), [TLDR AI](https://tldr.tech/api/rss/ai); swappable at onboarding — records dated sightings per item, applies the gate and review, and rewrites your personal digest (a scored shortlist plus a watching list with promote-conditions). Suggestions draw only from the reviewed shortlist and always carry the card, the caveats, and a dual citation: the aggregator *and* the original source. Scout asks once per project whether to track it ("track / don't / ask me later") and keeps descriptions fresh from your CLAUDE.md/README automatically.
 
 ## Install
 
@@ -61,7 +81,9 @@ A [Claude Code](https://claude.com/claude-code) skill that tracks curated GenAI 
    "WebSearch"
    ```
    Rationale: the first five confine writes to scout's own state dir plus one fixed validation script; the WebFetch rules are scoped to the default source domains only (swap them if you swap sources); `WebSearch` is the one broad grant — queries go only to the search provider (no third-party host sees them), but if you prefer to approve each search, omit it and expect prompts during promotion reviews.
-4. Start a new Claude Code session anywhere and run `/scout` — the first run walks you through onboarding (cadence, learning goals, keep/trim/add sources) and starts building your project profile.
+## First run (both install types)
+
+**Start a new Claude Code session anywhere and run `/scout`.** The first run walks you through a three-question onboarding — learning goals, sources (keep the defaults or change them), suggestion cadence — and starts building your project profile.
 
 ## Usage
 
