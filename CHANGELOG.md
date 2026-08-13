@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. Format foll
 
 ## [Unreleased]
 
+### Changed
+- Repo root is now the skill directory itself (`SKILL.md` at top level): install by cloning straight into `~/.claude/skills/scout`, update with `git pull`. Helper scripts remain a copy-on-install step by design (auto-executing hook code should never update silently via pull).
+
 ## [0.1.0] - 2026-08-13
 
 ### Added

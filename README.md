@@ -28,12 +28,13 @@ A [Claude Code](https://claude.com/claude-code) skill that tracks curated GenAI 
 
 ## Install
 
-1. Copy the skill and helper scripts:
+1. Clone this repo as the skill (updates are then just `git pull`), and copy the helper scripts:
    ```bash
-   mkdir -p ~/.claude/skills/scout ~/.claude/scout
-   cp skill/SKILL.md ~/.claude/skills/scout/SKILL.md
-   cp scripts/check-due.sh scripts/validate.sh ~/.claude/scout/
+   git clone https://github.com/DukeOfErl/claude-scout.git ~/.claude/skills/scout
+   mkdir -p ~/.claude/scout
+   cp ~/.claude/skills/scout/scripts/*.sh ~/.claude/scout/
    ```
+   The scripts are **deliberately copied, not run from the clone**: the SessionStart hook executes automatically, so auto-running it from a pull-updated checkout would let any upstream change execute on your machine unreviewed. After a `git pull` that touches `scripts/`, review the diff, then re-copy.
 2. Add the daily trigger — a SessionStart hook in `~/.claude/settings.json` (reminds Claude to refresh at most once a day, only on days you actually work):
    ```json
    "hooks": {
