@@ -28,14 +28,18 @@ A [Claude Code](https://claude.com/claude-code) skill that tracks curated GenAI 
 
 ## Install
 
-1. Clone this repo as the skill (updates are then just `git pull`), and copy the helper scripts:
+**Minimal — just the skill.** The skill is a single file and works on its own: copy `SKILL.md` to `~/.claude/skills/scout/SKILL.md` and run `/scout`. Onboarding, suggestions, and manual refreshes (`/scout scout`) all work. Everything else in this section is optional convenience: without the hook you refresh manually instead of getting a daily background nudge, and without the allow-rules/validator you'll click through some permission prompts during background runs. Skip what you don't want.
+
+**Recommended — clone + helpers:**
+
+1. Clone this repo as the skill — functionally identical to copying, but updates become `git pull` and contributing back is a branch away:
    ```bash
    git clone https://github.com/DukeOfErl/claude-scout.git ~/.claude/skills/scout
    mkdir -p ~/.claude/scout
    cp ~/.claude/skills/scout/scripts/*.sh ~/.claude/scout/
    ```
-   The scripts are **deliberately copied, not run from the clone**: the SessionStart hook executes automatically, so auto-running it from a pull-updated checkout would let any upstream change execute on your machine unreviewed. After a `git pull` that touches `scripts/`, review the diff, then re-copy.
-2. Add the daily trigger — a SessionStart hook in `~/.claude/settings.json` (reminds Claude to refresh at most once a day, only on days you actually work):
+   The helper scripts (`check-due.sh` — the daily-refresh nudge; `validate.sh` — prompt-free JSON validation) are **deliberately copied, not run from the clone**: the SessionStart hook executes automatically, so auto-running it from a pull-updated checkout would let any upstream change execute on your machine unreviewed. After a `git pull` that touches `scripts/`, review the diff, then re-copy.
+2. Add the daily trigger (optional) — a SessionStart hook in `~/.claude/settings.json` (reminds Claude to refresh at most once a day, only on days you actually work):
    ```json
    "hooks": {
      "SessionStart": [
@@ -43,7 +47,7 @@ A [Claude Code](https://claude.com/claude-code) skill that tracks curated GenAI 
      ]
    }
    ```
-3. **Recommended permission allow-rules** (in `~/.claude/settings.json` → `permissions.allow`) so background runs don't prompt you. Read these before adding — each grants something consciously:
+3. **Permission allow-rules** (optional, in `~/.claude/settings.json` → `permissions.allow`) so background runs don't prompt you. Read these before adding — each grants something consciously:
    ```json
    "Read(~/.claude/skills/**)",
    "Read(~/.claude/scout/**)",

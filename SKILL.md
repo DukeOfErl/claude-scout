@@ -12,7 +12,7 @@ State lives in `~/.claude/scout/`:
 - `profile.json` — the user: suggestion cadence, learning goals, sources (with roles), and tracked projects
 - `digest.md` — the human-readable shortlist + watching list
 
-**File access (avoid permission prompts):** use the **Read/Write/Edit tools** for these files; shell reads/writes (`python3 -c`, `cat`, `jq`) will prompt. Never `cd` — use absolute paths. Validate JSON after writing with `bash ~/.claude/scout/validate.sh [file]` (allow-listed).
+**File access (avoid permission prompts):** use the **Read/Write/Edit tools** for these files; shell reads/writes (`python3 -c`, `cat`, `jq`) will prompt. Never `cd` — use absolute paths. Validate JSON after writing with `bash ~/.claude/scout/validate.sh [file]` (allow-listed) — or, on script-less installs where that file doesn't exist, any equivalent JSON parse check (it may prompt; that's expected).
 
 Mode is the first argument: **`suggest` (default when no argument)**, `scout`, or `status`.
 
