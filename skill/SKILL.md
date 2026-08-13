@@ -1,0 +1,99 @@
+---
+name: scout
+description: Track curated GenAI sources, maintain a traction-gated, reviewed and scored digest of tools/concepts, and suggest one high-value item at opportune moments, matched to the user's projects and learning goals. Modes — suggest (default), scout (background refresh), status.
+---
+
+# Scout — GenAI tool & concept tracking
+
+Scout watches curated GenAI sources, filters for things that have proven value beyond their own developers, reviews and scores the survivors, and occasionally suggests exactly one — matched to what the user is building and learning.
+
+State lives in `~/.claude/scout/`:
+- `state.json` — tracked items (machine state)
+- `profile.json` — the user: suggestion cadence, learning goals, sources (with roles), and tracked projects
+- `digest.md` — the human-readable shortlist + watching list
+
+**File access (avoid permission prompts):** use the **Read/Write/Edit tools** for these files; shell reads/writes (`python3 -c`, `cat`, `jq`) will prompt. Never `cd` — use absolute paths. Validate JSON after writing with `bash ~/.claude/scout/validate.sh [file]` (allow-listed).
+
+Mode is the first argument: **`suggest` (default when no argument)**, `scout`, or `status`.
+
+## First run / onboarding
+
+If `profile.json` doesn't exist: create it from the defaults in this file's Sources section, then ask the user (briefly, not a form): their max suggestions per week (default 1), their learning goals in a sentence, and whether to keep/trim/add the default sources. Any source the user adds gets a quick fitness check before it counts: is it **discovery** material (broad, aggregated, recurring coverage), **corroboration** (independent hands-on voices, single-perspective diaries), or **calibration** (periodic adoption-staged reports)? Single-voice or launch-hype feeds must not enter the discovery role — that would defeat the traction gate.
+
+## Profile maintenance (runs opportunistically in any mode)
+
+- **New projects:** when running in a working directory whose project isn't in `profile.json.projects`, ask once: track it for tool/concept matching? Three answers: `tracking` / `declined` (never ask again) / `deferred` (re-ask when the project gains substance: CLAUDE.md acquires a "What this is" section, or real source files appear). On `tracking`, self-fill the entry: summary from CLAUDE.md's "What this is" → README fallback → one-line ask; stack from manifests (pyproject/package.json); record `derived_from` with a 16-char sha256 of the summary's source file. If the user can't describe a greenfield project yet, record `direction: "still exploring"` — fit-matching then favors learning value and broadly applicable items for it.
+- **Refresh:** when running in a tracked project, compare the stored hash against the current file; on material change, re-derive the summary silently (tracking consent already given). Update `last_seen` on every run in that project.
+- **Decay:** projects with `last_seen` older than ~3 weeks are treated as dormant — they stop attracting suggestions until a session touches them again. Never delete entries.
+- **Corrections:** when the user declines a suggestion because the *project description* is wrong ("we don't do X anymore"), fix the profile entry, not just the item.
+
+## Sources
+
+Read the live list from `profile.json.sources`. Each source has a `role`:
+- **discovery** — may seed new items and counts as an independent channel for the gate
+- **corroboration** — never seeds items; corroborates existing ones (concepts especially)
+
+Default channels (shipped with the skill; users may swap):
+- GenAI PM wiki (discovery): https://genaipm.com/wiki/tools?sort=recent + https://genaipm.com/wiki/concepts?sort=recent
+- AI News / Smol AI (discovery): https://news.smol.ai/rss.xml
+- TLDR AI (discovery): https://tldr.tech/api/rss/ai — skip raw arXiv items for the tools track
+- Hugging Face daily papers API (corroboration, concepts only)
+- Pasted briefs (corroboration): newsletter content the user pastes into a session
+
+`user-submitted` is always a valid sighting source: the user explicitly asking to track something counts as one independent channel for the gate.
+
+## `scout` — refresh the digest (run as a background agent; never block project work; the SessionStart hook requests this daily)
+
+1. Fetch the discovery channels from the profile. Diff against `state.json.items` (match by `id` = kebab slug; dedupe name variants).
+2. For every sighting of a tracked item, append to its `sources`: `{source: <profile source name>|user-submitted, date}` (one entry per source per day; refresh `mentions` where the source provides counts). For each genuinely new item worth tracking, record: `id`, `name`, `type` (`tool`|`concept`), `genaipm_url`/reference URL (null if none), `sources` (seeded with the discovering channel), `original_source` + `original_source_link` (one quick WebSearch for the strongest candidates if only named), `class` (`standard` | `emerging` | `niche`), `hurdle` (`low`|`med`|`high`), `project_fit_notes` (one line, against the profile's tracked projects), `first_seen`, `status` (`new` for standard, **`watching` for emerging**), `traction_evidence: []`.
+3. **Traction gate** — only emerging things that have shown value beyond their own developers:
+   - `emerging` **tools** need ALL of: (a) sightings in ≥2 independent discovery channels ≥14 days apart, and (b) ≥1 `traction_evidence` entry — third-party usage by someone other than the vendor (practitioner writeup, integration by another product; for OSS, strong download trends or GitHub dependents). Hunt for evidence with one targeted WebSearch **at promotion time only**. Record as `{type, note, url, date}`.
+   - `emerging` **concepts** need only (a) — two independent voices (original author + independent amplifier counts).
+   - `standard` items skip the gate; `niche` items stay off the shortlist regardless.
+   - Passing the gate triggers the **promotion review**; only items that clear it become `shortlisted`. `watching` items are NEVER suggested.
+4. **Promotion review** — once, whenever an item first enters the Shortlist (emerging AND standard alike):
+   - **Negative signals**: WebSearch for substantive criticism from trusted sources (practitioners, engineering blogs, quality HN/Reddit threads). Record `negative_signals: [{source, note, url, date, outcome}]` and act: `disqualify` (→ status `rejected`, with reason), `restrict` (narrow `project_fit_notes` to surviving use cases), `friction` (raise the friction score/hurdle), or `noted` (doesn't outweigh value — say why).
+   - **Comparables**: 1–3 alternatives — better-established or better-fitting for this user's profile. Record `alternatives: [{name, verdict}]`. If one is *clearly* better, track it instead (with its own review) and demote the original with a pointer.
+   - **Scores** (1–5, honest judgment): `standard` (how established), `emerging` (rising-star strength), `friction` (learning + implementation burden *for this user*; 5 = heavy), `value` (to tracked projects + learning goals). Record as `scores: {...}`.
+5. **Re-evaluation of past shortlist leavers:**
+   - On any demotion, record `demoted_date` + a concrete `revisit_if` one-liner.
+   - **Activity trigger** (every run): a `demoted`/`rejected` item with a fresh burst (≥2-channel sightings since demotion, or a major new development) gets a fresh promotion review.
+   - **Periodic sweep** (first run of each calendar month): skim `revisit_if` conditions; where one plausibly holds, verify with one WebSearch and re-review. Note the sweep in the digest header.
+   - `declined` items re-enter only after their 30-day cooldown AND newly stronger fit; `adopted` items never need re-promotion.
+6. Rewrite `digest.md`: a **Shortlist** of the ~5–10 strongest reviewed candidates (each: 2-line description, the four scores as stars, standard-vs-emerging framing, project fit, Caveats line, Alternatives line, hurdle, citation pair) and a compact **Watching** section (one line per item: what would promote it). Capacity demotions drop the weakest-scored item. Never delete `state.json` records.
+7. Set `state.json.last_checked` (ISO date); validate JSON after writing.
+
+## `suggest` (default mode) — surface one item
+
+**Cap (from `profile.json.user.max_suggestions_per_week`, default 1): applies across all sessions** via `state.json.last_suggestion_date`. An explicit `/scout` invocation overrides the cap; an unprompted suggestion never does. Only `shortlisted`/`new`-standard items are eligible — never `watching` (even when invoked; explain what's still unproven instead). Zero is a fine outcome — when invoked with nothing clearing the bar, say so usefully: name the closest candidates and what would promote them.
+
+**Timing (for unprompted suggestions).** Only at: **stage match** (the item concretely helps the task in front of the user) or **lull** (work package just merged / exploratory session). Never mid-large-change, mid-debug, or heads-down.
+
+**Selection.** Judge eligible candidates on: value to the current project, value to learning goals (standard-you-should-know vs emerging-stay-ahead), friction, and priority fit (would adopting it displace higher-priority work?). Pick at most one. Skip `declined` (30-day cooldown) and `snoozed` (until date); repeat a `suggested` item only if the fit is newly stronger.
+
+**Mandatory format.**
+1. Open by stating explicitly that this comes from the scout tracking scheme.
+2. Show the **card** — fixed template, fenced code block (stars: `★` filled, `☆` empty, from `scores`):
+   ```
+   ╭──────────────────────────────────────────────────╮
+     <NAME>  ·  <tool|concept>  ·  <standard|emerging>
+   
+     Standard  ★★★★☆     Emerging  ★★☆☆☆
+     Friction  ★★☆☆☆     Value     ★★★★★
+     ───────────────────────────────────────────────
+     <2–3 line summary: what it is, why it matters>
+   
+     Caveats:       <top negative signal, or "none material">
+     Alternatives:  <best alternative — verdict, or "none better">
+     Sources:  <aggregator URL> · <original source>
+   ╰──────────────────────────────────────────────────╯
+   ```
+3. Below the card: the considerations (project value, learning value, priority fit), **why this moment** (stage match or lull), and for `emerging` items the traction evidence. Link the original source if traceable; name it with a note if not.
+4. Offer the **full brief** (all sightings, evidence, negative signals, alternatives, fit reasoning from `state.json`) on request.
+5. End with a clear no-pressure out (adopt now / park it / not interested).
+
+Afterwards update `state.json`: item `status` (`suggested`, then `adopted`/`declined`/`snoozed` per the user's reaction) and `last_suggestion_date`.
+
+## `status` — report
+
+Show `digest.md` (shortlist + watching), item statuses, `last_checked`, `last_suggestion_date`, whether the suggestion slot is open, and the profile's tracked projects. Read-only.
