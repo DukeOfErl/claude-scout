@@ -18,18 +18,18 @@ Mode is the first argument: **`suggest` (default when no argument)**, `scout`, o
 
 ## First run / onboarding
 
-If `profile.json` doesn't exist: create it from the defaults in this file's Sources section, then run a **three-selection onboarding** (use AskUserQuestion where available; never present a form or ask for free-text essays):
+If `profile.json` doesn't exist: create it from the defaults in this file's Sources section, then run a **three-selection onboarding**. Where AskUserQuestion is available, bundle all three as ONE call (three questions, one dialog — a single setup moment, never a form or free-text essay). Note the component's 4-options-per-question limit; the layouts below respect it.
 
-1. **Learning goals** — one multi-select question: *"What are you tracking for? Pick 1–3 (or write your own)."* Offer these examples as options; selections become `profile.json.user.learning_goals` verbatim (an "Other" free-text answer is equally valid):
+1. **Learning goals** — multi-select: *"What are you tracking for? Pick 1–3 — these become your learning goals and steer what gets suggested."* Show these four options; fold the last two examples into the fourth option's description as an "Other examples: ... — write your own via Other" hint. Selections become `profile.json.user.learning_goals` verbatim (an "Other" free-text answer is equally valid):
    - **Core standards** — the tools everyone assumes an AI engineer knows (evals, observability, orchestration, RAG patterns)
    - **Emerging edge** — catch rising tools/concepts before they're mainstream
    - **Agentic security** — prompt injection, sandboxing, permissions, secure agent design
-   - **Career signal** — what shows up in AI-engineer job postings and interviews right now
-   - **Ecosystem deep-dive** — mastery of one named stack (ask which: LangChain/LangGraph, Claude Code, ...)
-   - **Product/PM lens** — capability awareness for product decisions rather than hands-on implementation
+   - **Career signal** — what shows up in AI-engineer job postings and interviews right now *(+ hint: ecosystem deep-dive of one named stack; product/PM capability lens)*
    Goals steer scoring: they shape the `value` dimension and fit-matching, so record them exactly as chosen.
-2. **Sources** — name the current defaults explicitly and ask defaults-or-changes: *"Default sources: GenAI PM wiki, AI News (Smol AI), TLDR AI (discovery) + HF daily papers, pasted briefs (corroboration). Use defaults, or make changes?"* Defaults = done in one keystroke. On changes, walk add/trim briefly; any **added** source gets a quick fitness check before it counts: is it **discovery** material (broad, aggregated, recurring coverage), **corroboration** (independent hands-on voices, single-perspective diaries), or **calibration** (periodic adoption-staged reports)? Single-voice or launch-hype feeds must not enter the discovery role — that would defeat the traction gate.
-3. **Cadence** — confirm, don't interrogate: *"Suggestion cap: 1 per week (recommended) — keep or change?"*
+2. **Sources** — name the current defaults explicitly and ask defaults-or-changes: *"Default sources: GenAI PM wiki, AI News (Smol AI), TLDR AI (discovery) + HF daily papers, pasted briefs (corroboration). Use defaults?"* Options: **Use defaults (Recommended)** / **Make changes**. On changes, a follow-up dialog: Add a source / Remove a default / Both (removal picks from the defaults via multi-select — mind the 4-option limit, put the fifth behind Other). Any **added** source gets a quick fitness check before it counts: is it **discovery** material (broad, aggregated, recurring coverage), **corroboration** (independent hands-on voices, single-perspective diaries), or **calibration** (periodic adoption-staged reports)? Single-voice or launch-hype feeds must not enter the discovery role — that would defeat the traction gate.
+3. **Cadence** — confirm, don't interrogate: *"Suggestion cap — at most how many suggestions per week?"* with **1 per week (Recommended)** first.
+
+The new-project ask (see Profile maintenance) arrives as its own contextual dialog — "scout noticed you're working in <dir>..." — not folded into the setup bundle.
 
 ## Profile maintenance (runs opportunistically in any mode)
 

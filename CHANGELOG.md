@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. Format foll
 ## [Unreleased]
 
 ### Changed
+- Onboarding layout validated with a mock run and codified: all three setup questions bundled in one dialog, 4-option-limit workarounds specified (two goal examples fold into an "Other examples" hint; source removal uses multi-select with the fifth default behind Other), and the new-project ask kept as its own contextual dialog.
 - Onboarding reduced to three quick selections: multi-select learning goals with six suggested examples (core standards, emerging edge, agentic security, career signal, ecosystem deep-dive, product/PM lens), a defaults-or-changes sources question that names the current defaults, and a confirm-style cadence question.
 - Repo root is now the skill directory itself (`SKILL.md` at top level): install by cloning straight into `~/.claude/skills/scout`, update with `git pull`. Helper scripts remain a copy-on-install step by design (auto-executing hook code should never update silently via pull).
 
