@@ -18,7 +18,18 @@ Mode is the first argument: **`suggest` (default when no argument)**, `scout`, o
 
 ## First run / onboarding
 
-If `profile.json` doesn't exist: create it from the defaults in this file's Sources section, then ask the user (briefly, not a form): their max suggestions per week (default 1), their learning goals in a sentence, and whether to keep/trim/add the default sources. Any source the user adds gets a quick fitness check before it counts: is it **discovery** material (broad, aggregated, recurring coverage), **corroboration** (independent hands-on voices, single-perspective diaries), or **calibration** (periodic adoption-staged reports)? Single-voice or launch-hype feeds must not enter the discovery role — that would defeat the traction gate.
+If `profile.json` doesn't exist: create it from the defaults in this file's Sources section, then run a **three-selection onboarding** (use AskUserQuestion where available; never present a form or ask for free-text essays):
+
+1. **Learning goals** — one multi-select question: *"What are you tracking for? Pick 1–3 (or write your own)."* Offer these examples as options; selections become `profile.json.user.learning_goals` verbatim (an "Other" free-text answer is equally valid):
+   - **Core standards** — the tools everyone assumes an AI engineer knows (evals, observability, orchestration, RAG patterns)
+   - **Emerging edge** — catch rising tools/concepts before they're mainstream
+   - **Agentic security** — prompt injection, sandboxing, permissions, secure agent design
+   - **Career signal** — what shows up in AI-engineer job postings and interviews right now
+   - **Ecosystem deep-dive** — mastery of one named stack (ask which: LangChain/LangGraph, Claude Code, ...)
+   - **Product/PM lens** — capability awareness for product decisions rather than hands-on implementation
+   Goals steer scoring: they shape the `value` dimension and fit-matching, so record them exactly as chosen.
+2. **Sources** — name the current defaults explicitly and ask defaults-or-changes: *"Default sources: GenAI PM wiki, AI News (Smol AI), TLDR AI (discovery) + HF daily papers, pasted briefs (corroboration). Use defaults, or make changes?"* Defaults = done in one keystroke. On changes, walk add/trim briefly; any **added** source gets a quick fitness check before it counts: is it **discovery** material (broad, aggregated, recurring coverage), **corroboration** (independent hands-on voices, single-perspective diaries), or **calibration** (periodic adoption-staged reports)? Single-voice or launch-hype feeds must not enter the discovery role — that would defeat the traction gate.
+3. **Cadence** — confirm, don't interrogate: *"Suggestion cap: 1 per week (recommended) — keep or change?"*
 
 ## Profile maintenance (runs opportunistically in any mode)
 
