@@ -99,3 +99,7 @@ Your `~/.claude/scout/` state (digest, profile, scores) is **personal and local*
 - **Proposing a new source**: state its role — *discovery* (broad, aggregated, recurring), *corroboration* (independent hands-on voices), or *calibration* (periodic adoption-staged reports) — and why it won't smuggle launch hype into the discovery role. Single-voice diaries don't qualify for discovery.
 - **Gate/scoring changes are policy debates**: the PR diff of `skill/SKILL.md` *is* the proposal; argue it in the PR.
 - Share conclusions ("X beat Y for solo devs") in discussions or notes — never your state files.
+
+## License
+
+MIT
