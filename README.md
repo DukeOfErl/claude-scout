@@ -1,6 +1,6 @@
 # Scout — turn GenAI overwhelm into just-in-time project-targeted suggestions
 
-A [Claude Code](https://claude.com/claude-code) skill that watches the GenAI firehose for you and occasionally surfaces **exactly one** vetted, scored, project-matched suggestion.
+A [Claude Code](https://claude.com/claude-code) skill that scouts the latest GenAI developments and turns them into project-targeted suggestions — traction-gated, reviewed, and scored, surfacing **exactly one** at a time.
 
 ## The problems
 

@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. Format foll
 ## [Unreleased]
 
 ### Changed
+- README intro aligned with the repo description ("scouts the latest GenAI developments and turns them into project-targeted suggestions"); MIT license noted in a README section instead of a LICENSE file.
 - README rewritten pain-point-first (new title, problems/solution table) and install docs clarified: minimal skill-only install, optional helpers, prominent first-run section.
 - Onboarding reduced to three quick selections in one dialog (suggested learning goals, defaults-or-changes sources, confirm-style cadence); layout mock-validated.
 - Repo root is now the skill directory itself: install by cloning into `~/.claude/skills/scout`, update with `git pull`; helper scripts remain copy-on-install by design.
