@@ -4,15 +4,12 @@ All notable changes to this project will be documented in this file. Format foll
 
 ## [Unreleased]
 
-### Changed
-- README intro aligned with the repo description ("scouts the latest GenAI developments and turns them into project-targeted suggestions"); MIT license noted in a README section instead of a LICENSE file.
-- README rewritten pain-point-first (new title, problems/solution table) and install docs clarified: minimal skill-only install, optional helpers, prominent first-run section.
-- Onboarding reduced to three quick selections in one dialog (suggested learning goals, defaults-or-changes sources, confirm-style cadence); layout mock-validated.
-- Repo root is now the skill directory itself: install by cloning into `~/.claude/skills/scout`, update with `git pull`; helper scripts remain copy-on-install by design.
-
 ## [0.1.0] - 2026-08-13
 
 ### Added
+- Pain-point-first README (title, problems/solution table), with a minimal skill-only install path, optional helpers, a prominent first-run section, and an MIT license note.
+- Three-selection onboarding in one dialog (suggested learning goals, defaults-or-changes sources, confirm-style cadence); layout mock-validated.
+- Repo root is the skill directory itself: install by cloning into `~/.claude/skills/scout`, update with `git pull`; helper scripts are copy-on-install by design.
 - Initial public version of the scout skill, generalized from a personal GenAI-tracking setup:
   - discovery/corroboration source model with per-user swappable sources (`profile.json`) and a fitness check for added channels
   - traction gate for emerging tools (≥2 independent channels ≥14 days apart + third-party usage evidence) and concepts (two independent voices)
