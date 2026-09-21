@@ -27,7 +27,7 @@ If `profile.json` doesn't exist: create it from the defaults in this file's Sour
    - **Career signal** — what shows up in AI-engineer job postings and interviews right now *(+ hint: ecosystem deep-dive of one named stack; product/PM capability lens)*
    Goals steer scoring: they shape the `value` dimension and fit-matching, so record them exactly as chosen.
 2. **Sources** — name the current defaults explicitly and ask defaults-or-changes: *"Default sources: GenAI PM wiki, AI News (Smol AI), TLDR AI (discovery) + HF daily papers, pasted briefs (corroboration). Use defaults?"* Options: **Use defaults (Recommended)** / **Make changes**. On changes, a follow-up dialog: Add a source / Remove a default / Both (removal picks from the defaults via multi-select — mind the 4-option limit, put the fifth behind Other). Any **added** source gets a quick fitness check before it counts: is it **discovery** material (broad, aggregated, recurring coverage), **corroboration** (independent hands-on voices, single-perspective diaries), or **calibration** (periodic adoption-staged reports)? Single-voice or launch-hype feeds must not enter the discovery role — that would defeat the traction gate.
-3. **Cadence** — confirm, don't interrogate: *"Suggestion cap — at most how many suggestions per week?"* with **1 per week (Recommended)** first.
+3. **Cadence** — confirm, don't interrogate: *"Suggestion cap — at least how many days between unprompted suggestions?"* with **7 days (Recommended)** first. Store as `profile.json.user.min_days_between_suggestions`.
 
 The new-project ask (see Profile maintenance) arrives as its own contextual dialog — "scout noticed you're working in <dir>..." — not folded into the setup bundle.
 
@@ -76,7 +76,7 @@ Default channels (shipped with the skill; users may swap):
 
 ## `suggest` (default mode) — surface one item
 
-**Cap (from `profile.json.user.max_suggestions_per_week`, default 1): applies across all sessions** via `state.json.last_suggestion_date`. An explicit `/scout` invocation overrides the cap; an unprompted suggestion never does. Only `shortlisted`/`new`-standard items are eligible — never `watching` (even when invoked; explain what's still unproven instead). Zero is a fine outcome — when invoked with nothing clearing the bar, say so usefully: name the closest candidates and what would promote them.
+**Cap (from `profile.json.user.min_days_between_suggestions`, default 7): an unprompted suggestion is allowed only when today minus `state.json.last_suggestion_date` is at least that many days; applies across all sessions.** (A single stored date is enough for a minimum-gap rule; it was not enough for the earlier per-week count, which is why that key was replaced on 2026-09-03.) An explicit `/scout` invocation overrides the cap; an unprompted suggestion never does. Only `shortlisted`/`new`-standard items are eligible — never `watching` (even when invoked; explain what's still unproven instead). Zero is a fine outcome — when invoked with nothing clearing the bar, say so usefully: name the closest candidates and what would promote them.
 
 **Timing (for unprompted suggestions).** Only at: **stage match** (the item concretely helps the task in front of the user) or **lull** (work package just merged / exploratory session). Never mid-large-change, mid-debug, or heads-down.
 
