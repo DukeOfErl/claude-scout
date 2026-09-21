@@ -22,7 +22,7 @@ Five mechanisms, each aimed at a pain point:
 | **Promotion review** — critical-reviews search + comparables check before anything becomes suggestible; a clearly better alternative *replaces* the item | One-sided pitches, missed alternatives |
 | **Scored cards** — standard / emerging / friction / value, 1–5 | Judgment at a glance instead of vibes |
 | **Living project profile** — auto-built from your repos, refreshed as they change, dormant when you stop touching them | Generic, stack-blind recommendations |
-| **Cap + timing** — default one suggestion per week, offered only at a stage match or a lull | Overwhelm, badly timed interruptions |
+| **Cap + timing** — default at least 7 days between suggestions, offered only at a stage match or a lull | Overwhelm, badly timed interruptions |
 
 A suggestion looks like this:
 
