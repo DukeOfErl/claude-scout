@@ -16,6 +16,17 @@ State lives in `~/.claude/scout/`:
 
 Mode is the first argument: **`suggest` (default when no argument)**, `scout`, or `status`.
 
+## Persisting state (git)
+
+Scout state is the record of weeks of sightings and reviews. If it lives only on disk, nothing signals when it is lost. So when the user keeps it under version control, every run that changes it ends with a commit.
+
+- **When.** Commit only if `~/.claude/scout/` sits inside a git working tree (`git -C ~/.claude/scout rev-parse --show-toplevel` succeeds) **and** that top level differs from this skill's own (`git -C <skill dir> rev-parse --show-toplevel`). State is personal and must never enter the published skill repo. With no such tree, skip silently. Also skip silently when the state files are ignored there and not tracked (`git check-ignore` matches): the user chose not to version them.
+- **What.** Stage the state files by explicit path only (`state.json`, `digest.md`, `profile.json`), never `git add -A`: the same repository may hold unrelated work. For the same reason, commit those paths only, `git commit -m "…" -- state.json digest.md profile.json`, so nothing the user had already staged is swept in. Skip the commit when nothing changed.
+- **Message.** `scout: <mode> <ISO date> — <one line on what changed>`, e.g. `scout: scout 2026-10-07 — 2 sightings, Foo promoted`.
+- **Before staging, check what you wrote.** Fit notes describe a project from its own repository. Never copy into scout state material the user keeps deliberately apart from their code repositories, such as a private planning repo or personal, financial or HR matters. The state repo may have a different audience from that material.
+- **If the commit fails** (a held `index.lock`, a read-only `.git` under a sandbox): do not retry, and do not work around it. Set `state.json.uncommitted_since` (ISO date, kept from the first failure) and say so in the run's report, so a foreground session can tell the user. Clear the key after the next successful commit.
+- **Push only with permission.** Pushing is outward-facing. A background run never pushes and never asks. It reports how many commits are ahead of upstream. A foreground session asks the user once per session, showing the count and the remote, and pushes only on an explicit yes. Never push the state to a public remote. If the remote's visibility is unknown, say so in the question.
+
 ## First run / onboarding
 
 If `profile.json` doesn't exist: create it from the defaults in this file's Sources section, then run a **three-selection onboarding**. Where AskUserQuestion is available, bundle all three as ONE call (three questions, one dialog — a single setup moment, never a form or free-text essay). Note the component's 4-options-per-question limit; the layouts below respect it.
@@ -73,6 +84,7 @@ Default channels (shipped with the skill; users may swap):
    - `declined` items re-enter only after their 30-day cooldown AND newly stronger fit; `adopted` items never need re-promotion.
 6. Rewrite `digest.md`: a **Shortlist** of the ~5–10 strongest reviewed candidates (each: 2-line description, the four scores as stars, standard-vs-emerging framing, project fit, Caveats line, Alternatives line, hurdle, citation pair) and a compact **Watching** section (one line per item: what would promote it). Capacity demotions drop the weakest-scored item. Never delete `state.json` records.
 7. Set `state.json.last_checked` (ISO date); validate JSON after writing.
+8. Persist: commit per **Persisting state (git)**, and include in the report the commit hash (or why there is none) and the number of unpushed commits.
 
 ## `suggest` (default mode) — surface one item
 
@@ -103,8 +115,8 @@ Default channels (shipped with the skill; users may swap):
 4. Offer the **full brief** (all sightings, evidence, negative signals, alternatives, fit reasoning from `state.json`) on request.
 5. End with a clear no-pressure out (adopt now / park it / not interested).
 
-Afterwards update `state.json`: item `status` (`suggested`, then `adopted`/`declined`/`snoozed` per the user's reaction) and `last_suggestion_date`.
+Afterwards update `state.json`: item `status` (`suggested`, then `adopted`/`declined`/`snoozed` per the user's reaction) and `last_suggestion_date`. Then persist per **Persisting state (git)**. This is a foreground session, so if commits are unpushed, ask about pushing here.
 
 ## `status` — report
 
-Show `digest.md` (shortlist + watching), item statuses, `last_checked`, `last_suggestion_date`, whether the suggestion slot is open, and the profile's tracked projects. Read-only.
+Show `digest.md` (shortlist + watching), item statuses, `last_checked`, `last_suggestion_date`, whether the suggestion slot is open, and the profile's tracked projects. Also show `uncommitted_since` if set, and the number of unpushed state commits. Read-only, except for the push question, which `status` may ask per **Persisting state (git)**.
