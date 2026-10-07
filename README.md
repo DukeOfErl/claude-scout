@@ -91,7 +91,7 @@ A daily background run (via an optional hook) fetches curated channels — defau
 - `/scout scout` — force a manual refresh (normally happens daily in the background)
 - `/scout status` — digest, statuses, whether the suggestion slot is open
 
-Your `~/.claude/scout/` state (digest, profile, scores) is **personal and local** — two people with identical rules get different digests, by design. Don't commit it.
+Your `~/.claude/scout/` state (digest, profile, scores) is **personal** — two people with identical rules get different digests, by design. Never commit it to this repo. If you keep it in a private repository of your own (a dotfiles or `~/.claude` config repo), scout commits it there after every run that changes it, and pushes only when you say yes in a foreground session. Under a sandbox, the commit needs write access to that repository's `.git` (for example `sandbox.filesystem.allowWrite: ["~/.claude/.git"]`, with `denyWrite` on its `hooks` and `config`); without it, scout records the date it fell behind and tells you. Scout never commits on a detached HEAD or during a rebase or merge.
 
 ## Contributing
 

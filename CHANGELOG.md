@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. Format foll
 
 ## [Unreleased]
 
+### Added
+- State persistence: when `~/.claude/scout/` sits in a git working tree other than the skill repo, every run that changes state ends with a commit of the three state files, staged and committed by explicit path so nothing else the user had staged is swept in. Ignored, untracked state files are left alone, an unchanged state is not committed, and nothing is committed on a detached HEAD or during a rebase, merge, cherry-pick or revert. A commit that fails or is refused is recorded as `state.json.uncommitted_since` (cleared before the next commit is staged) and reported, never worked around. Pushing happens only in a foreground session, at most one question per conversation, after the user has seen every commit that would go, including any that are not scout's. Never to a public remote (checked for GitHub remotes), and never from a background run. A rule keeps material the user holds apart from their code repositories out of scout state.
+
 ### Changed
 - Suggestion cap is now a minimum gap rather than a per-week count: `profile.json.user.max_suggestions_per_week` is replaced by `min_days_between_suggestions` (default 7). The old key could not be enforced from the single `state.json.last_suggestion_date` the skill stores — counting suggestions within a window needs a list of dates, while a minimum gap needs only the most recent one. Onboarding, the `suggest` cap rule and the README now describe the gap.
 
