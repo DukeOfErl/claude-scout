@@ -20,12 +20,21 @@ Mode is the first argument: **`suggest` (default when no argument)**, `scout`, o
 
 Scout state is the record of weeks of sightings and reviews. If it lives only on disk, nothing signals when it is lost. So when the user keeps it under version control, every run that changes it ends with a commit.
 
-- **When.** Commit only if `~/.claude/scout/` sits inside a git working tree (`git -C ~/.claude/scout rev-parse --show-toplevel` succeeds) **and** that top level differs from this skill's own (`git -C <skill dir> rev-parse --show-toplevel`). State is personal and must never enter the published skill repo. With no such tree, skip silently. Also skip silently when the state files are ignored there and not tracked (`git check-ignore` matches): the user chose not to version them.
-- **What.** Stage the state files by explicit path only (`state.json`, `digest.md`, `profile.json`), never `git add -A`: the same repository may hold unrelated work. For the same reason, commit those paths only, `git commit -m "…" -- state.json digest.md profile.json`, so nothing the user had already staged is swept in. Skip the commit when nothing changed.
-- **Message.** `scout: <mode> <ISO date> — <one line on what changed>`, e.g. `scout: scout 2026-10-07 — 2 sightings, Foo promoted`.
-- **Before staging, check what you wrote.** Fit notes describe a project from its own repository. Never copy into scout state material the user keeps deliberately apart from their code repositories, such as a private planning repo or personal, financial or HR matters. The state repo may have a different audience from that material.
-- **If the commit fails** (a held `index.lock`, a read-only `.git` under a sandbox): do not retry, and do not work around it. Set `state.json.uncommitted_since` (ISO date, kept from the first failure) and say so in the run's report, so a foreground session can tell the user. Clear the key after the next successful commit.
-- **Push only with permission.** Pushing is outward-facing. A background run never pushes and never asks. It reports how many commits are ahead of upstream. A foreground session asks the user once per session, showing the count and the remote, and pushes only on an explicit yes. Never push the state to a public remote. If the remote's visibility is unknown, say so in the question.
+Run every git command as `git -C ~/.claude/scout …` (never `cd`), with the state files named relative to that directory. The steps run in this order; each "skip" ends the persist step without a report, each "not committed" ends it with one.
+
+1. **Is there a repo of the user's own?** `git -C ~/.claude/scout rev-parse --show-toplevel` must succeed, else skip. If `~/.claude/scout/` sits inside this skill's own directory, skip: state is personal and must never enter the published skill repo. (Test the path itself, not the two repos' top levels: a skill copied as plain files into the user's config repo shares that repo's top level, and its state should still be committed.)
+2. **Which files are eligible?** Each of `state.json`, `digest.md`, `profile.json` that is already tracked (`git ls-files --error-unmatch -- <file>`) or not ignored (`git check-ignore -q -- <file>` fails). An ignored, untracked file is the user's choice not to version it; leave it out. If no file is eligible, skip.
+3. **Did anything change?** `git status --porcelain -- <eligible files>`. Empty output means skip. Do not call `git commit` to find out: it exits non-zero with nothing to commit, which would look like a failure.
+4. **Is the repo in a state to commit on?** Not committed if an operation is in progress: any of `rebase-merge`, `rebase-apply`, `MERGE_HEAD`, `CHERRY_PICK_HEAD`, `REVERT_HEAD` exists under `git rev-parse --absolute-git-dir`. Not committed if HEAD is detached (`git symbolic-ref -q HEAD` fails), because a commit there can be orphaned at the next checkout. Check the operations first, since a rebase also detaches HEAD and is the more useful reason to report.
+5. **Clear the flag, then commit.** If `state.json.uncommitted_since` is set, remember its date, remove the key, and validate the JSON, all before staging, so the commit carries the cleared flag and leaves the tree clean. Then `git add -- <eligible files>` and `git commit -m "…" -- <eligible files>`. Never `git add -A`, and always name the paths on the commit too, so nothing the user had already staged is swept in. Message: `scout: <mode> <ISO date> — <one line on what changed>`, e.g. `scout: scout 2026-10-07 — 2 sightings, Foo promoted`.
+6. **If the commit fails** (a held `index.lock`, a read-only `.git` under a sandbox), or step 4 said not committed: do not retry, and do not work around it. Set `state.json.uncommitted_since`, keeping the date already there or remembered in step 5, else today, validate the JSON again, and say why in the run's report, so a foreground session can tell the user.
+
+**Before staging, check what you wrote.** Fit notes describe a project from its own repository. Never copy into scout state material the user keeps deliberately apart from their code repositories, such as a private planning repo or personal, financial or HR matters. The state repo may have a different audience from that material.
+
+**Push only with permission.** Pushing is outward-facing, and it sends every commit on the branch, not only scout's.
+- A background run never pushes and never asks. It reports two counts against upstream: the state commits (`git rev-list --count @{u}..HEAD -- <state files>`) and all commits (`git rev-list --count @{u}..HEAD`). A stale remote-tracking ref can overstate both, so call them local counts.
+- A foreground session may ask once per conversation; after a no, it does not ask again in that conversation. Fetch first so the counts are current. Then show the remote, every commit that would go (`git log --oneline @{u}..HEAD`), and name any commit that is not a `scout:` commit. Push only on an explicit yes to that list.
+- Never push the state to a public remote. For a GitHub remote, check with `gh repo view <owner/repo> --json visibility`. If the visibility cannot be determined, say so in the question.
 
 ## First run / onboarding
 
@@ -84,7 +93,7 @@ Default channels (shipped with the skill; users may swap):
    - `declined` items re-enter only after their 30-day cooldown AND newly stronger fit; `adopted` items never need re-promotion.
 6. Rewrite `digest.md`: a **Shortlist** of the ~5–10 strongest reviewed candidates (each: 2-line description, the four scores as stars, standard-vs-emerging framing, project fit, Caveats line, Alternatives line, hurdle, citation pair) and a compact **Watching** section (one line per item: what would promote it). Capacity demotions drop the weakest-scored item. Never delete `state.json` records.
 7. Set `state.json.last_checked` (ISO date); validate JSON after writing.
-8. Persist: commit per **Persisting state (git)**, and include in the report the commit hash (or why there is none) and the number of unpushed commits.
+8. Persist per **Persisting state (git)**, and include in the report the commit hash (or why there is none) and both unpushed counts. Step 7's validation does not cover the flag that persisting may write; persisting validates again itself.
 
 ## `suggest` (default mode) — surface one item
 
@@ -115,8 +124,8 @@ Default channels (shipped with the skill; users may swap):
 4. Offer the **full brief** (all sightings, evidence, negative signals, alternatives, fit reasoning from `state.json`) on request.
 5. End with a clear no-pressure out (adopt now / park it / not interested).
 
-Afterwards update `state.json`: item `status` (`suggested`, then `adopted`/`declined`/`snoozed` per the user's reaction) and `last_suggestion_date`. Then persist per **Persisting state (git)**. This is a foreground session, so if commits are unpushed, ask about pushing here.
+Afterwards update `state.json`: item `status` (`suggested`, then `adopted`/`declined`/`snoozed` per the user's reaction) and `last_suggestion_date`. Then persist per **Persisting state (git)**. This is a foreground session, so if commits are unpushed, the push question may be asked here, under that section's rules.
 
 ## `status` — report
 
-Show `digest.md` (shortlist + watching), item statuses, `last_checked`, `last_suggestion_date`, whether the suggestion slot is open, and the profile's tracked projects. Also show `uncommitted_since` if set, and the number of unpushed state commits. Read-only, except for the push question, which `status` may ask per **Persisting state (git)**.
+Show `digest.md` (shortlist + watching), item statuses, `last_checked`, `last_suggestion_date`, whether the suggestion slot is open, and the profile's tracked projects. Also show `uncommitted_since` if set, and both unpushed counts (state commits and all commits). Read-only, except for the push question, which `status` may ask per **Persisting state (git)**.
