@@ -101,6 +101,8 @@ Default channels (shipped with the skill; users may swap):
 
 **Timing (for unprompted suggestions).** Only at: **stage match** (the item concretely helps the task in front of the user) or **lull** (work package just merged / exploratory session). Never mid-large-change, mid-debug, or heads-down.
 
+**The SessionStart hook (`~/.claude/scout/check-due.sh`) watches for silence.** When the cap has passed and an item is eligible, it tells the session a suggestion is due (context only). When no suggestion at all has been given for 7 days, it also warns the user directly (`systemMessage`) that scout may not be firing. A due notice is not a licence to interrupt: the timing rule above still decides the moment, but a session that sees it should look for one.
+
 **Selection.** Judge eligible candidates on: value to the current project, value to learning goals (standard-you-should-know vs emerging-stay-ahead), friction, and priority fit (would adopting it displace higher-priority work?). Pick at most one. Skip `declined` (30-day cooldown) and `snoozed` (until date); repeat a `suggested` item only if the fit is newly stronger.
 
 **Mandatory format.**
@@ -124,8 +126,8 @@ Default channels (shipped with the skill; users may swap):
 4. Offer the **full brief** (all sightings, evidence, negative signals, alternatives, fit reasoning from `state.json`) on request.
 5. End with a clear no-pressure out (adopt now / park it / not interested).
 
-Afterwards update `state.json`: item `status` (`suggested`, then `adopted`/`declined`/`snoozed` per the user's reaction) and `last_suggestion_date`. Then persist per **Persisting state (git)**. This is a foreground session, so if commits are unpushed, the push question may be asked here, under that section's rules.
+Afterwards update `state.json`: item `status` (`suggested`, then `adopted`/`declined`/`snoozed` per the user's reaction) and `last_suggestion_date`, and append one entry to `state.json.suggestion_log`: `{date, item_id, prompted: true|false, project, context, reaction}` — `prompted` is true for an explicit `/scout` or a user question, false for an unprompted suggestion; `reaction` starts `pending` and is updated when the user answers. The log is the only record of how often scout actually speaks; `last_suggestion_date` alone cannot tell a quiet scheme from a broken one. Then persist per **Persisting state (git)**. This is a foreground session, so if commits are unpushed, the push question may be asked here, under that section's rules.
 
 ## `status` — report
 
-Show `digest.md` (shortlist + watching), item statuses, `last_checked`, `last_suggestion_date`, whether the suggestion slot is open, and the profile's tracked projects. Also show `uncommitted_since` if set, and both unpushed counts (state commits and all commits). Read-only, except for the push question, which `status` may ask per **Persisting state (git)**.
+Show `digest.md` (shortlist + watching), item statuses, `last_checked`, `last_suggestion_date`, the last few `suggestion_log` entries (prompted vs unprompted), whether the suggestion slot is open, and the profile's tracked projects. Also show `uncommitted_since` if set, and both unpushed counts (state commits and all commits). Read-only, except for the push question, which `status` may ask per **Persisting state (git)**.

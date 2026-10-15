@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file. Format foll
 ## [Unreleased]
 
 ### Added
+- `state.json.suggestion_log`: one entry per suggestion (`date`, `item_id`, `prompted`, `project`, `context`, `reaction`), so how often scout speaks, and whether it was asked to, can be read back. `status` shows the last few.
+- The SessionStart hook watches for silence. It tells the session when a suggestion is due (the cap has passed and an item is eligible), and when nothing has been suggested for 7 days it warns the user directly through `systemMessage` that scout may not be firing. It now prints one JSON object (`systemMessage` for the user, `hookSpecificOutput.additionalContext` for Claude) instead of plain text.
 - State persistence: when `~/.claude/scout/` sits in a git working tree other than the skill repo, every run that changes state ends with a commit of the three state files, staged and committed by explicit path so nothing else the user had staged is swept in. Ignored, untracked state files are left alone, an unchanged state is not committed, and nothing is committed on a detached HEAD or during a rebase, merge, cherry-pick or revert. A commit that fails or is refused is recorded as `state.json.uncommitted_since` (cleared before the next commit is staged) and reported, never worked around. Pushing happens only in a foreground session, at most one question per conversation, after the user has seen every commit that would go, including any that are not scout's. Never to a public remote (checked for GitHub remotes), and never from a background run. A rule keeps material the user holds apart from their code repositories out of scout state.
 
 ### Changed
