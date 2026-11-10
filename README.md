@@ -59,7 +59,7 @@ A daily background run (via an optional hook) fetches curated channels — defau
    cp ~/.claude/skills/scout/scripts/*.sh ~/.claude/scout/
    ```
    The helper scripts (`check-due.sh` — the daily-refresh nudge; `validate.sh` — prompt-free JSON validation) are **deliberately copied, not run from the clone**: the SessionStart hook executes automatically, so auto-running it from a pull-updated checkout would let any upstream change execute on your machine unreviewed. After a `git pull` that touches `scripts/`, review the diff, then re-copy.
-2. Add the daily trigger (optional) — a SessionStart hook in `~/.claude/settings.json` (reminds Claude to refresh at most once a day, only on days you actually work):
+2. Add the daily trigger (optional) — a SessionStart hook in `~/.claude/settings.json` (reminds Claude to refresh at most once a day, only on days you actually work). The same hook watches for silence: if scout has suggested nothing for 7 days, it shows you a yellow warning at session start ("Scout has not suggested anything for N days…"), because a scheme that has quietly stopped firing looks exactly like one with nothing to say. Run `/scout status` when you see it.
    ```json
    "hooks": {
      "SessionStart": [

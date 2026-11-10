@@ -57,10 +57,13 @@ if eligible and (silent is None or silent >= cap):
 
 # A fresh install has never suggested anything and has nothing eligible yet: that is not silence.
 if (silent is not None and silent >= SILENCE_DAYS) or (silent is None and eligible):
+    # Yellow (ANSI 33), so the warning stands out among other startup messages. Claude Code
+    # renders ANSI in systemMessage (seen in a live session, 2026-11-10); if a session ever
+    # shows a literal "[33m", the codes are being escaped and should come out again.
     warning = (
-        f"Scout has not suggested anything for {silent if silent is not None else 'an unknown number of'} "
+        f"\033[33mScout has not suggested anything for {silent if silent is not None else 'an unknown number of'} "
         f"days (last: {state.get('last_suggestion_date') or 'never'}). Something may be off; "
-        "run /scout status to check."
+        "run /scout status to check.\033[0m"
     )
 
 if context or warning:
